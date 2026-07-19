@@ -7,8 +7,16 @@ description: >-
   SecretStore so you only write ExternalSecret resources. Runs on stock,
   unmodified ESO.
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+# Both fields are bumped by release-please, never by hand — see
+# release-please-config.json:
+#   - `version` bumps whenever a Conventional Commit touches
+#     charts/seekrit-eso/** (the "charts/seekrit-eso" package, release-type
+#     "helm" — it owns this field plus a chart-scoped CHANGELOG.md).
+#   - `appVersion` tracks the seekrit-sdk-server release, via that package's
+#     `extra-files` entry (type "yaml", jsonpath $.appVersion) — it bumps
+#     whenever sdk-server cuts a release, independent of chart changes.
+version: 0.2.0
+appVersion: "0.2.0"
 keywords:
   - seekrit
   - secrets
