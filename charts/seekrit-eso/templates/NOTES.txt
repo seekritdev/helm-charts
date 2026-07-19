@@ -1,0 +1,36 @@
+seekrit-eso is installed. The sidecar is resolving secrets for your service
+token and ESO can now sync them via the "{{ .Values.secretStore.name }}" {{ .Values.secretStore.kind }}.
+
+Write an ExternalSecret that references it:
+
+  apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    name: my-app
+    namespace: {{ .Release.Namespace }}
+  spec:
+    refreshInterval: 1m
+    secretStoreRef:
+      name: {{ .Values.secretStore.name }}
+      kind: {{ .Values.secretStore.kind }}
+    target:
+      name: my-app-secrets        # the Kubernetes Secret ESO creates
+    data:
+      - secretKey: DATABASE_URL    # key in the resulting Secret
+        remoteRef:
+          key: DATABASE_URL        # secret name in your seekrit environment
+
+Check status:
+
+  kubectl -n {{ .Release.Namespace }} get externalsecret
+  kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "seekrit-eso.fullname" . }}
+
+Notes:
+- One token = one environment. To sync another app/env, install another release
+  with its own token and secretStore.name.
+{{- if not .Values.networkPolicy.enabled }}
+- The sidecar serves plaintext over in-cluster HTTP, gated by an API key. For
+  defense-in-depth, enable networkPolicy (restrict ingress to your ESO pods) and
+  turn on etcd encryption-at-rest for the Secrets ESO writes.
+{{- end }}
+- Docs: https://seekrit.dev/docs/guides/kubernetes

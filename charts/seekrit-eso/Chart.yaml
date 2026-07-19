@@ -1,0 +1,27 @@
+apiVersion: v2
+name: seekrit-eso
+description: >-
+  Sync seekrit secrets into Kubernetes via the External Secrets Operator.
+  Deploys the seekrit-sdk-server sidecar (holds a service token, decrypts
+  locally, serves plaintext over an authed HTTP API) and generates a webhook
+  SecretStore so you only write ExternalSecret resources. Runs on stock,
+  unmodified ESO.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - seekrit
+  - secrets
+  - external-secrets
+  - eso
+home: https://seekrit.dev
+sources:
+  - https://github.com/seekritdev/helm-charts
+  - https://github.com/seekritdev/seekrit-sdk-server
+maintainers:
+  - name: seekrit
+    url: https://seekrit.dev
+annotations:
+  # External Secrets Operator must be installed in the cluster first; this chart
+  # does not bundle it (so it never collides with an existing ESO install).
+  external-secrets.io/required: ">=0.9.0"

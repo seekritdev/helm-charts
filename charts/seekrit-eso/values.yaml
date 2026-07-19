@@ -1,0 +1,96 @@
+# Default values for seekrit-eso.
+#
+# Minimal drop-in: set `seekrit.token` (a service token bound to one app
+# environment) and install. Everything else has sane defaults.
+
+seekrit:
+  # A seekrit service token (skt_…) bound to the app environment you want to
+  # sync. Mint with:  seekrit token create --name eso --app <app> --env <env>
+  # Leave empty and set `existingSecret` instead to manage the token yourself
+  # (GitOps / sealed-secrets / SOPS).
+  token: ""
+
+  # Bring-your-own Secret holding the token. When set, `seekrit.token` is
+  # ignored and the token is read from this Secret.
+  existingSecret: ""
+  # Key within `existingSecret` that holds the token.
+  existingSecretTokenKey: token
+
+  # seekrit API base URL. Only change for self-hosted / staging.
+  apiUrl: https://api.seekrit.dev
+
+# How often the sidecar re-resolves from seekrit (picks up rotations/new secrets).
+# Accepts 30s, 5m, 1h, or a bare seconds count. ESO's own ExternalSecret
+# refreshInterval polls the sidecar on top of this.
+refreshInterval: 60s
+
+sidecar:
+  # Bearer key ESO must present to the sidecar's /v1/secret* endpoints. Leave
+  # empty to auto-generate a 32-char key on first install (preserved across
+  # `helm upgrade`). The sidecar decrypts everything the token can reach, so this
+  # key — plus network reachability — is what stops other in-cluster workloads
+  # reading your secrets.
+  apiKey: ""
+
+# The SecretStore (or ClusterSecretStore) this chart generates. Your
+# ExternalSecrets reference it by `secretStoreRef.name`.
+secretStore:
+  create: true
+  # "SecretStore" (namespaced, default) or "ClusterSecretStore" (cluster-wide).
+  kind: SecretStore
+  name: seekrit
+
+image:
+  repository: seekritdev/sdk-server
+  # Defaults to the chart appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+service:
+  port: 8080
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Optional: restrict who may reach the sidecar to the External Secrets Operator
+# pods. Default off — enabling it without matching your ESO install's namespace/
+# labels will break syncs. When on, ingress is allowed only from `from`.
+networkPolicy:
+  enabled: false
+  # e.g. [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: external-secrets } } }]
+  from: []
+
+podAnnotations: {}
+podLabels: {}
+
+# The image is a single static binary on `scratch`, so it locks down cleanly.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

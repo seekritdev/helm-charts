@@ -1,0 +1,31 @@
+# Lints each chart in this mirror so external PRs get validated. Nothing here
+# publishes — the monorepo's CI packages and pushes the chart as an OCI artifact
+# to Docker Hub, unaffected by where the source is mirrored.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: azure/setup-helm@v4
+      - name: helm lint (seekrit-eso)
+        run: helm lint charts/seekrit-eso --set seekrit.token=skt_ci_demo
+      - name: helm template (SecretStore)
+        run: helm template ci charts/seekrit-eso -n seekrit-system --set seekrit.token=skt_ci_demo > /dev/null
+      - name: helm template (ClusterSecretStore + NetworkPolicy)
+        run: |
+          helm template ci charts/seekrit-eso -n seekrit-system \
+            --set seekrit.token=skt_ci_demo \
+            --set secretStore.kind=ClusterSecretStore \
+            --set networkPolicy.enabled=true \
+            --set 'networkPolicy.from[0].podSelector.matchLabels.app=external-secrets' > /dev/null
+      - name: helm template (existingSecret path)
+        run: |
+          helm template ci charts/seekrit-eso -n seekrit-system \
+            --set seekrit.existingSecret=my-token > /dev/null
