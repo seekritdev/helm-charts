@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/mileszim/seekrit/compare/chart-v0.3.0...chart-v0.4.0) (2026-08-15)
+
+
+### Features
+
+* OpenTelemetry for the self-hosted services ([#187](https://github.com/mileszim/seekrit/issues/187)) ([ead4ac6](https://github.com/mileszim/seekrit/commit/ead4ac6492e2e032e0ad0c25f0fbbf7830397a8a))
+
 ## [0.3.0](https://github.com/mileszim/seekrit/compare/chart-v0.2.0...chart-v0.3.0) (2026-07-19)
 
 
