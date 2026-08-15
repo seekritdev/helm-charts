@@ -49,6 +49,10 @@ Then create an `ExternalSecret` (see the post-install notes, or the
 | `seekrit.existingSecretTokenKey` | `token` | Key within `existingSecret`. |
 | `seekrit.apiUrl` | `https://api.seekrit.dev` | seekrit API base URL. |
 | `refreshInterval` | `60s` | How often the sidecar re-resolves (picks up rotations). |
+| `cache.enabled` | `false` | Start from the last-known-good (encrypted) resolve response when the seekrit API is unreachable. |
+| `cache.maxAge` | `24h` | How stale that copy may be and still be used. |
+| `cache.mountPath` | `/var/cache/seekrit` | Where the cache volume is mounted. |
+| `cache.volume` | `{}` (an `emptyDir`) | The volume itself — set a PVC to survive rescheduling. |
 | `sidecar.apiKey` | auto | Bearer key ESO presents to the sidecar. Auto-generated + preserved across upgrades if empty. |
 | `secretStore.kind` | `SecretStore` | `SecretStore` (namespaced) or `ClusterSecretStore`. |
 | `secretStore.name` | `seekrit` | Name your `ExternalSecret`s reference. |
@@ -62,6 +66,14 @@ Then create an `ExternalSecret` (see the post-install notes, or the
   by an API key. For defense-in-depth, enable `networkPolicy` and turn on etcd
   encryption-at-rest for the Secrets ESO writes. (Plaintext landing in a k8s
   Secret is inherent to how ESO works.)
+- **Surviving a seekrit outage.** The first resolve is fail-closed, so by
+  default a pod that restarts while the API is unreachable will not bind and
+  syncs stop. Set `cache.enabled=true` to start from the last response it saw
+  instead; it keeps retrying and switches to live secrets as soon as the API
+  answers. Only ciphertext is stored, so the volume is no more sensitive than
+  the token Secret already in the pod — but a revoked token keeps working until
+  `cache.maxAge` elapses. Use a PVC for `cache.volume` if you want it to survive
+  rescheduling onto another node.
 - **Whole-environment pulls.** ESO's webhook provider fetches one key at a time
   (the sidecar caches, so it's cheap). List keys in `data[]`, or use a
   `target.template` against the sidecar's `/v1/secrets` map.

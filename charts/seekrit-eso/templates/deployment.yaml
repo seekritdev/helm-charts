@@ -43,6 +43,12 @@ spec:
             - "0.0.0.0:{{ .Values.service.port }}"
             - --refresh-interval
             - {{ .Values.refreshInterval | quote }}
+            {{- if .Values.cache.enabled }}
+            - --cache-dir
+            - {{ .Values.cache.mountPath | quote }}
+            - --cache-max-age
+            - {{ .Values.cache.maxAge | quote }}
+            {{- end }}
           env:
             - name: SEEKRIT_TOKEN
               valueFrom:
@@ -101,6 +107,23 @@ spec:
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.cache.enabled }}
+          volumeMounts:
+            - name: lkg-cache
+              mountPath: {{ .Values.cache.mountPath | quote }}
+          {{- end }}
+      {{- if .Values.cache.enabled }}
+      volumes:
+        - name: lkg-cache
+          {{- /* Defaulted here, not in values.yaml: Helm deep-merges maps, so a
+                 default of `emptyDir: {}` would survive alongside a user's
+                 `persistentVolumeClaim` and produce an invalid volume. */}}
+          {{- if .Values.cache.volume }}
+          {{- toYaml .Values.cache.volume | nindent 10 }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -46,6 +46,35 @@ otel:
   # ignored and the value is read from this Secret.
   existingSecret: ""
   existingSecretHeadersKey: otelHeaders
+# Opt-in last-known-good cache.
+#
+# The sidecar's first resolve is fail-closed: if the seekrit API is unreachable
+# at startup it will not bind, so a pod rescheduled during an outage takes every
+# ExternalSecret it backs down with it. Turn this on and it keeps the *encrypted*
+# resolve response on a volume and starts from that instead, then keeps retrying
+# and switches to live secrets as soon as the API answers.
+#
+# Decrypting the cached copy still requires the service token, so the volume is
+# no more sensitive than the token Secret already mounted into the pod. Two
+# trade-offs to know: a revoked token keeps working until `maxAge` elapses (a
+# *refused* resolve deletes the entry, so this only applies while the API is
+# unreachable), and a cached start does not produce the `env.resolve_denied`
+# audit row that a live rejected resolve would.
+cache:
+  enabled: false
+  # How stale the cached copy may be and still be used at startup.
+  maxAge: 24h
+  # Where the volume is mounted inside the container.
+  mountPath: /var/cache/seekrit
+  # The volume itself. Empty means `emptyDir: {}`, which survives a container
+  # restart but NOT a reschedule onto another node — one of the cases this
+  # exists for. For that, point it at a PVC:
+  #   volume:
+  #     persistentVolumeClaim:
+  #       claimName: seekrit-lkg-cache
+  # The container runs as uid 65532; a PVC usually needs a matching
+  # `podSecurityContext.fsGroup` for it to be writable.
+  volume: {}
 
 sidecar:
   # Bearer key ESO must present to the sidecar's /v1/secret* endpoints. Leave
