@@ -24,6 +24,29 @@ seekrit:
 # refreshInterval polls the sidecar on top of this.
 refreshInterval: 60s
 
+# OpenTelemetry export from the sidecar to YOUR collector (never to seekrit).
+# Leave `endpoint` empty — the default — and nothing is exported: no exporters
+# are created and no connections attempted.
+#
+# Spans and metrics carry secret *names*, counts, and outcomes; never values.
+# See https://seekrit.dev/docs/guides/telemetry
+otel:
+  # OTLP/HTTP base endpoint, e.g. http://otel-collector.observability:4318.
+  # The signal paths (/v1/traces, /v1/metrics, /v1/logs) are appended for you.
+  endpoint: ""
+  # Overrides the reported service.name. Defaults to seekrit-sdk-server.
+  serviceName: ""
+  # Extra OTEL resource attributes, comma-separated,
+  # e.g. "deployment.environment=prod,service.namespace=platform".
+  resourceAttributes: ""
+  # Collector credentials as OTEL_EXPORTER_OTLP_HEADERS, e.g. "api-key=abc123".
+  # This is a credential: prefer `existingSecret` below over an inline value.
+  headers: ""
+  # Bring-your-own Secret holding the headers string. When set, `headers` is
+  # ignored and the value is read from this Secret.
+  existingSecret: ""
+  existingSecretHeadersKey: otelHeaders
+
 sidecar:
   # Bearer key ESO must present to the sidecar's /v1/secret* endpoints. Leave
   # empty to auto-generate a 32-char key on first install (preserved across

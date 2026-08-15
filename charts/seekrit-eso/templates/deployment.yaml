@@ -56,6 +56,35 @@ spec:
                   key: sidecarApiKey
             - name: SEEKRIT_API_URL
               value: {{ .Values.seekrit.apiUrl | quote }}
+            {{- /* Telemetry is entirely opt-in: with no endpoint, none of these
+                   are set and the sidecar exports nothing. */}}
+            {{- with .Values.otel }}
+            {{- if .endpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .endpoint | quote }}
+            {{- with .serviceName }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .resourceAttributes }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .existingSecret }}
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret }}
+                  key: {{ .existingSecretHeadersKey }}
+            {{- else if .headers }}
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "seekrit-eso.fullname" $ }}
+                  key: otelHeaders
+            {{- end }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
