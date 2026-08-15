@@ -15,7 +15,7 @@ type: application
 #   - `appVersion` tracks the seekrit-sdk-server release, via that package's
 #     `extra-files` entry (type "yaml", jsonpath $.appVersion) — it bumps
 #     whenever sdk-server cuts a release, independent of chart changes.
-version: 0.4.0
+version: 0.5.0
 appVersion: "0.2.0"
 keywords:
   - seekrit
