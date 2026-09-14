@@ -15,12 +15,16 @@ instead of at the External Secrets Operator.
 ## Install
 
 ```bash
-helm install seekrit-wasmcloud oci://registry-1.docker.io/seekritdev/seekrit-wasmcloud \
+helm repo add seekrit https://charts.seekrit.dev
+helm install seekrit-wasmcloud seekrit/seekrit-wasmcloud \
   --namespace wasmcloud --create-namespace \
   --set profiles.checkout.token=skt_… \
   --set profiles.checkout.issuers[0]=ACCOUNT_PUBLIC_KEY \
   --set nats.url=nats://nats:4222
 ```
+
+Or without adding a repository, from the OCI artifact:
+`helm install seekrit-wasmcloud oci://registry-1.docker.io/seekritdev/seekrit-wasmcloud`.
 
 Mint the token with `seekrit token create --name wasmcloud --app <app> --env <env>`;
 find your account key with `wash keys list`.

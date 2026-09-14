@@ -32,10 +32,14 @@ ExternalSecret ─▶ ESO ──webhook──▶ seekrit-sdk-server ──/v1/re
 ## Install
 
 ```sh
-helm install seekrit-eso oci://... \
+helm repo add seekrit https://charts.seekrit.dev
+helm install seekrit-eso seekrit/seekrit-eso \
   -n seekrit-system --create-namespace \
   --set seekrit.token=skt_…
 ```
+
+Or without adding a repository, from the OCI artifact:
+`helm install seekrit-eso oci://registry-1.docker.io/seekritdev/seekrit-eso`.
 
 Then create an `ExternalSecret` (see the post-install notes, or the
 [Kubernetes guide](https://seekrit.dev/docs/guides/kubernetes)).
