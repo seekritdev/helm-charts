@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/mileszim/seekrit/compare/chart-v0.5.0...chart-v0.6.0) (2026-09-14)
+
+
+### Features
+
+* **charts:** publish a real Helm repository at charts.seekrit.dev ([#408](https://github.com/mileszim/seekrit/issues/408)) ([46e31a0](https://github.com/mileszim/seekrit/commit/46e31a0ccd22a2a9ada1e344c0d8dd59845704b6))
+
 ## [0.5.0](https://github.com/mileszim/seekrit/compare/chart-v0.4.0...chart-v0.5.0) (2026-08-15)
 
 

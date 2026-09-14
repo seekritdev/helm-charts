@@ -14,7 +14,7 @@ type: application
 #     release-type "helm" — it owns this field plus a chart-scoped CHANGELOG.md).
 #   - `appVersion` tracks the seekrit-wasmcloud-secrets release, via that
 #     package's `extra-files` entry (type "yaml", jsonpath $.appVersion).
-version: 0.2.0
+version: 0.3.0
 appVersion: "0.1.0"
 keywords:
   - seekrit
