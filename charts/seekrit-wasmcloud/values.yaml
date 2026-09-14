@@ -1,0 +1,146 @@
+# Default values for seekrit-wasmcloud.
+#
+# Minimal drop-in: declare one profile (a service token plus the account key
+# that signs your components) and point `nats.url` at your lattice.
+
+# Operator-declared profiles. This is the whole authorization model: a workload
+# can name a *secret*, never the credential used to fetch it.
+#
+# Matchers AND together — every list a profile declares must match, so declaring
+# more narrows and never widens:
+#
+#   issuers       account public keys (A…) allowed to have signed the entity's
+#                 JWT. THE trust anchor: an nkeys JWT is self-issued, so a valid
+#                 signature only proves the holder of `iss` vouched for `sub`.
+#   entities      component (M…) or provider (V…) public keys. Narrows.
+#   applications  wadm application names. Unsigned metadata, so it narrows only;
+#                 a profile declaring nothing but `applications` is refused at
+#                 startup rather than quietly trusted.
+#
+# Find your account key with `wash keys list`, or read it off a signed
+# component with `wash inspect --jwt-only <component.wasm> | wash claims inspect`.
+#
+# profiles:
+#   checkout:
+#     token: skt_...
+#     issuers: ["ACCOUNT_PUBLIC_KEY"]
+#     applications: ["checkout"]
+profiles: {}
+
+# Bring-your-own Secret holding the whole profile file, for GitOps /
+# sealed-secrets / SOPS. When set, `profiles` above is ignored.
+existingSecret: ""
+# Key within `existingSecret` holding the JSON document.
+existingSecretKey: wasmcloud.json
+
+seekrit:
+  # seekrit API base URL, for profiles that do not set their own. Only change
+  # for self-hosted / staging.
+  apiUrl: https://api.seekrit.dev
+
+nats:
+  # The lattice's NATS. In-cluster this is usually the wasmCloud NATS service.
+  url: nats://nats:4222
+  # Optional NATS credentials file (.creds), as an existing Secret. Needed when
+  # your lattice authenticates clients — the backend must be allowed to
+  # subscribe to <subjectPrefix>.>
+  existingSecret: ""
+  existingSecretKey: nats.creds
+
+backend:
+  # The backend name in the subject, and what `wash config put` references as
+  # `backend`. Subjects become:
+  #   <subjectPrefix>.v1alpha1.<name>.server_xkey
+  #   <subjectPrefix>.v1alpha1.<name>.get
+  name: seekrit
+  # The subject root. wasmCloud's canonical default; change only if your lattice
+  # moved the whole tree.
+  subjectPrefix: wasmcloud.secrets
+
+  # The server xkey seed (SX…), which decides the public key hosts seal requests
+  # to. Leave empty and each process mints an ephemeral one at startup — fine
+  # for a single replica, and NOT fine for more than one: `server_xkey` and
+  # `get` are separate requests over a queue group, so a request sealed to one
+  # replica's key can land on another and fail to open. The chart refuses to
+  # render `replicaCount > 1` without a seed for exactly that reason.
+  #
+  # Generate one with:  wash keys gen curve     (or `nk -gen curve`)
+  xkeySeed: ""
+  # Bring-your-own Secret holding the seed instead.
+  xkeySeedExistingSecret: ""
+  xkeySeedExistingSecretKey: xkeySeed
+
+# How often each profile re-resolves from seekrit (picks up rotations and new
+# secrets). Accepts 30s, 5m, 1h, or a bare seconds count.
+#
+# Startup is fail-closed — a profile that cannot resolve stops the pod coming
+# up — but refreshes are lenient: a failed re-resolve keeps the last good
+# snapshot and retries, so an API blip does not take every component's
+# credentials with it. This interval is the bound on that leniency: a revoked
+# token stops working within one tick of the API answering again.
+refreshInterval: 60s
+
+# OpenTelemetry export to YOUR collector (never to seekrit). Leave `endpoint`
+# empty — the default — and nothing is exported.
+#
+# Spans carry secret *names*, the signed identity that asked, and outcomes;
+# never values and never tokens. See https://seekrit.dev/docs/guides/telemetry
+otel:
+  endpoint: ""
+  serviceName: ""
+  resourceAttributes: ""
+  # A credential: prefer `existingSecret` over an inline value.
+  headers: ""
+  existingSecret: ""
+  existingSecretHeadersKey: otelHeaders
+
+image:
+  # Published to both registries, same bytes. Prefer ghcr.io on a cluster of any
+  # size: Docker Hub rate-limits anonymous pulls per IP, and every node behind
+  # one NAT egress shares that budget — which surfaces as ImagePullBackOff at
+  # the worst possible moment, not as a registry error you would think to look
+  # for.  ghcr.io/seekritdev/wasmcloud-secrets
+  repository: seekritdev/wasmcloud-secrets
+  # Defaults to the chart appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# More than one requires `backend.xkeySeed` — see the note there. Replicas share
+# a NATS queue group, so they spread requests rather than duplicating them.
+replicaCount: 1
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+# The image is a single static binary on `scratch`, so it locks down cleanly.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

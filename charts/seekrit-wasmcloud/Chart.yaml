@@ -1,0 +1,34 @@
+apiVersion: v2
+name: seekrit-wasmcloud
+description: >-
+  Serve seekrit secrets to a wasmCloud lattice. Deploys
+  seekrit-wasmcloud-secrets, which answers wasmCloud's v1alpha1 NATS secrets API
+  next to your hosts: it holds the service token, decrypts locally, and seals
+  each value to the requesting host's xkey. Components ask wasmCloud for
+  secrets as usual; the seekrit API never sees a plaintext value.
+type: application
+# Both fields are bumped by release-please, never by hand — see
+# release-please-config.json:
+#   - `version` bumps whenever a Conventional Commit touches
+#     charts/seekrit-wasmcloud/** (the "charts/seekrit-wasmcloud" package,
+#     release-type "helm" — it owns this field plus a chart-scoped CHANGELOG.md).
+#   - `appVersion` tracks the seekrit-wasmcloud-secrets release, via that
+#     package's `extra-files` entry (type "yaml", jsonpath $.appVersion).
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - seekrit
+  - secrets
+  - wasmcloud
+  - wasm
+  - nats
+home: https://seekrit.dev
+sources:
+  - https://github.com/seekritdev/helm-charts
+maintainers:
+  - name: seekrit
+    url: https://seekrit.dev
+annotations:
+  # A wasmCloud lattice (hosts + NATS) must already exist; this chart deploys
+  # only the secrets backend, so it never collides with an existing install.
+  wasmcloud.dev/secrets-api: v1alpha1

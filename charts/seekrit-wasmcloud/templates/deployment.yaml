@@ -1,0 +1,124 @@
+{{- include "seekrit-wasmcloud.validate" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "seekrit-wasmcloud.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "seekrit-wasmcloud.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "seekrit-wasmcloud.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- /* Roll pods when a token, the seed, or a matcher changes. */}}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "seekrit-wasmcloud.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "seekrit-wasmcloud.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: seekrit-wasmcloud-secrets
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          args:
+            - --config
+            - /etc/seekrit/{{ include "seekrit-wasmcloud.profileSecretKey" . }}
+            - --backend
+            - {{ .Values.backend.name | quote }}
+            - --subject-prefix
+            - {{ .Values.backend.subjectPrefix | quote }}
+            - --refresh-interval
+            - {{ .Values.refreshInterval | quote }}
+            {{- if .Values.nats.existingSecret }}
+            - --nats-creds
+            - /etc/nats/{{ .Values.nats.existingSecretKey }}
+            {{- end }}
+          env:
+            - name: NATS_URL
+              value: {{ .Values.nats.url | quote }}
+            - name: SEEKRIT_API_URL
+              value: {{ .Values.seekrit.apiUrl | quote }}
+            {{- $seedSecret := .Values.backend.xkeySeedExistingSecret | default (ternary (include "seekrit-wasmcloud.fullname" .) "" (ne .Values.backend.xkeySeed "")) }}
+            {{- if $seedSecret }}
+            - name: SEEKRIT_WASMCLOUD_XKEY_SEED
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $seedSecret }}
+                  key: {{ if .Values.backend.xkeySeedExistingSecret }}{{ .Values.backend.xkeySeedExistingSecretKey }}{{ else }}xkeySeed{{ end }}
+            {{- end }}
+            {{- /* Telemetry is entirely opt-in: with no endpoint, none of these
+                   are set and the backend exports nothing. */}}
+            {{- with .Values.otel }}
+            {{- if .endpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .endpoint | quote }}
+            {{- with .serviceName }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .resourceAttributes }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if or .headers .existingSecret }}
+            - name: OTEL_EXPORTER_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret | default (include "seekrit-wasmcloud.fullname" $) }}
+                  key: {{ if .existingSecret }}{{ .existingSecretHeadersKey }}{{ else }}otelHeaders{{ end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          volumeMounts:
+            - name: profiles
+              mountPath: /etc/seekrit
+              readOnly: true
+            {{- if .Values.nats.existingSecret }}
+            - name: nats-creds
+              mountPath: /etc/nats
+              readOnly: true
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: profiles
+          secret:
+            secretName: {{ include "seekrit-wasmcloud.profileSecretName" . }}
+            defaultMode: 0400
+        {{- if .Values.nats.existingSecret }}
+        - name: nats-creds
+          secret:
+            secretName: {{ .Values.nats.existingSecret }}
+            defaultMode: 0400
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

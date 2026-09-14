@@ -1,0 +1,44 @@
+seekrit-wasmcloud is installed.
+
+The backend answers on:
+
+    {{ .Values.backend.subjectPrefix }}.v1alpha1.{{ .Values.backend.name }}.server_xkey
+    {{ .Values.backend.subjectPrefix }}.v1alpha1.{{ .Values.backend.name }}.get
+
+Two things still have to happen outside this chart, and neither fails loudly:
+
+1. Your wasmCloud hosts must ALLOW this backend. Start them with
+
+       --secrets-topic-prefix {{ .Values.backend.subjectPrefix }}
+
+   and make sure their NATS user may publish to that subtree. A host that does
+   not know the backend simply never asks it.
+
+2. Each secret needs a config entry naming this backend and the seekrit secret:
+
+       wash config put SECRET_database_url \
+         backend={{ .Values.backend.name }} \
+         key=DATABASE_URL \
+         type=secret.wasmcloud.dev/v1alpha1
+
+   then reference it from the component in your wadm manifest:
+
+       secrets:
+         - name: database_url
+           properties:
+             policy: default
+             key: DATABASE_URL
+
+Check it is reachable from a host's NATS:
+
+    nats req '{{ .Values.backend.subjectPrefix }}.v1alpha1.{{ .Values.backend.name }}.server_xkey' ''
+
+{{- if and (eq (int .Values.replicaCount) 1) (not (or .Values.backend.xkeySeed .Values.backend.xkeySeedExistingSecret)) }}
+
+NOTE: no `backend.xkeySeed` is set, so this pod mints an ephemeral key at
+startup. That is fine for one replica. Before scaling up, generate a seed
+(`wash keys gen curve`) and set it — otherwise replicas advertise different
+keys and requests fail to open.
+{{- end }}
+
+Docs: https://seekrit.dev/docs/guides/wasmcloud
