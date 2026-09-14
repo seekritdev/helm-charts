@@ -22,7 +22,7 @@ type: application
 # republishing an unchanged `version` rewrites an already-published OCI tag
 # while charts.seekrit.dev skips it, leaving the two serving different bytes.
 # .github/scripts/check-release-wiring.mjs now fails CI on either drift.
-version: 0.3.1
+version: 0.4.0
 appVersion: "0.2.0"
 keywords:
   - seekrit
