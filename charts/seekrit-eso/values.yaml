@@ -93,6 +93,11 @@ secretStore:
   name: seekrit
 
 image:
+  # Published to both registries, same bytes. Prefer ghcr.io on a cluster of any
+  # size: Docker Hub rate-limits anonymous pulls per IP, and every node behind
+  # one NAT egress shares that budget — which surfaces as ImagePullBackOff at
+  # the worst possible moment, not as a registry error you would think to look
+  # for.  ghcr.io/seekritdev/sdk-server
   repository: seekritdev/sdk-server
   # Defaults to the chart appVersion when empty.
   tag: ""
