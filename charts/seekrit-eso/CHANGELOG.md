@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/mileszim/seekrit/compare/chart-v0.6.0...chart-v0.6.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **charts:** pin `appVersion` to the released sdk-server (0.2.0 -> 0.7.2). The `extra-files` updater that should have kept it current addressed a path that does not exist, so it had never run.
+
 ## [0.6.0](https://github.com/mileszim/seekrit/compare/chart-v0.5.0...chart-v0.6.0) (2026-09-14)
 
 

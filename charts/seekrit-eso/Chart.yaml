@@ -15,8 +15,16 @@ type: application
 #   - `appVersion` tracks the seekrit-sdk-server release, via that package's
 #     `extra-files` entry (type "yaml", jsonpath $.appVersion) — it bumps
 #     whenever sdk-server cuts a release, independent of chart changes.
-version: 0.6.0
-appVersion: "0.2.0"
+#
+# Both were corrected by hand once, on 2026-09-14, because the `extra-files`
+# entry addressed a path relative to the *app* package and so had never run —
+# the rule above held, but nothing was enforcing it. `version` had to move in
+# the same commit: publish-chart.yml fires on any Chart.yaml change, and
+# republishing an unchanged `version` rewrites an already-published OCI tag
+# while charts.seekrit.dev skips it, leaving the two serving different bytes.
+# .github/scripts/check-release-wiring.mjs now fails CI on either drift.
+version: 0.6.1
+appVersion: "0.7.2"
 keywords:
   - seekrit
   - secrets

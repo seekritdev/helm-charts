@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/mileszim/seekrit/compare/chart-wasmcloud-v0.3.0...chart-wasmcloud-v0.3.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **charts:** pin `appVersion` to the released wasmcloud-secrets (0.1.0 -> 0.2.0). The chart rendered `seekritdev/wasmcloud-secrets:0.1.0`, an image tag that was never published to any registry, so every install landed in ImagePullBackOff.
+
 ## [0.3.0](https://github.com/mileszim/seekrit/compare/chart-wasmcloud-v0.2.0...chart-wasmcloud-v0.3.0) (2026-09-14)
 
 
