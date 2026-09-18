@@ -7,7 +7,7 @@ description: >-
   SecretStore so you only write ExternalSecret resources. Runs on stock,
   unmodified ESO.
 type: application
-version: 0.7.0
+version: 0.7.1
 appVersion: 0.7.3
 keywords:
   - seekrit
