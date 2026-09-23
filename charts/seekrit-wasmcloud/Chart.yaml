@@ -7,23 +7,8 @@ description: >-
   each value to the requesting host's xkey. Components ask wasmCloud for secrets
   as usual; the seekrit API never sees a plaintext value.
 type: application
-# Both fields are bumped by release-please, never by hand — see
-# release-please-config.json:
-#   - `version` bumps whenever a Conventional Commit touches
-#     charts/seekrit-wasmcloud/** (the "charts/seekrit-wasmcloud" package,
-#     release-type "helm" — it owns this field plus a chart-scoped CHANGELOG.md).
-#   - `appVersion` tracks the seekrit-wasmcloud-secrets release, via that
-#     package's `extra-files` entry (type "yaml", jsonpath $.appVersion).
-#
-# Both were corrected by hand once, on 2026-09-14, because the `extra-files`
-# entry addressed a path relative to the *app* package and so had never run —
-# the rule above held, but nothing was enforcing it. `version` had to move in
-# the same commit: publish-chart.yml fires on any Chart.yaml change, and
-# republishing an unchanged `version` rewrites an already-published OCI tag
-# while charts.seekrit.dev skips it, leaving the two serving different bytes.
-# .github/scripts/check-release-wiring.mjs now fails CI on either drift.
 version: 0.4.0
-appVersion: "0.2.0"
+appVersion: 0.2.1
 keywords:
   - seekrit
   - secrets
@@ -37,6 +22,4 @@ maintainers:
   - name: seekrit
     url: https://seekrit.dev
 annotations:
-  # A wasmCloud lattice (hosts + NATS) must already exist; this chart deploys
-  # only the secrets backend, so it never collides with an existing install.
   wasmcloud.dev/secrets-api: v1alpha1
