@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/mileszim/seekrit/compare/chart-v0.7.2...chart-v0.7.3) (2026-09-30)
+
+
+### Miscellaneous Chores
+
+* release main ([#489](https://github.com/mileszim/seekrit/issues/489)) ([53220ce](https://github.com/mileszim/seekrit/commit/53220ce6fd9b2ed22cae1b717bb8da7ac8d1af34))
+
 ## [0.7.2](https://github.com/mileszim/seekrit/compare/chart-v0.7.1...chart-v0.7.2) (2026-09-23)
 
 
