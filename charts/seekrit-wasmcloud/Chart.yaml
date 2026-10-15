@@ -7,7 +7,7 @@ description: >-
   each value to the requesting host's xkey. Components ask wasmCloud for secrets
   as usual; the seekrit API never sees a plaintext value.
 type: application
-version: 0.4.3
+version: 0.4.4
 appVersion: 0.2.4
 keywords:
   - seekrit
