@@ -14,7 +14,7 @@ keywords:
   - secrets
   - external-secrets
   - eso
-home: https://seekrit.dev
+home: https://seekrit.dev/docs/guides/kubernetes
 sources:
   - https://github.com/seekritdev/helm-charts
   - https://github.com/seekritdev/seekrit-sdk-server

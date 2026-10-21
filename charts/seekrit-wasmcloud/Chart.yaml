@@ -15,7 +15,7 @@ keywords:
   - wasmcloud
   - wasm
   - nats
-home: https://seekrit.dev
+home: https://seekrit.dev/docs/guides/wasmcloud
 sources:
   - https://github.com/seekritdev/helm-charts
 maintainers:
