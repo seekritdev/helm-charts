@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.7](https://github.com/mileszim/seekrit/compare/chart-wasmcloud-v0.4.6...chart-wasmcloud-v0.4.7) (2026-10-28)
+
+
+### Miscellaneous Chores
+
+* release main ([#549](https://github.com/mileszim/seekrit/issues/549)) ([2ecb93e](https://github.com/mileszim/seekrit/commit/2ecb93e3909a66f347558ce4afbfe9ef0ac39091))
+
 ## [0.4.6](https://github.com/mileszim/seekrit/compare/chart-wasmcloud-v0.4.5...chart-wasmcloud-v0.4.6) (2026-10-27)
 
 
