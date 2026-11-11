@@ -8,7 +8,7 @@ description: >-
   as usual; the seekrit API never sees a plaintext value.
 type: application
 version: 0.4.7
-appVersion: 0.3.1
+appVersion: 0.3.2
 keywords:
   - seekrit
   - secrets
